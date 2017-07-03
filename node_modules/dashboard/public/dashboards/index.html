@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Ascot</title>
+<meta name="description" content="Framework to develop online collaborative tools." />
+<meta http-equiv="Pragma" content="no-cache">
+
+<link rel="stylesheet" href="/css/960/reset.css"> 
+<link rel="stylesheet" href="/css/dashboard.css">
+
+<link rel="stylesheet" href="/css/aristo/jquery-ui-1.8.7.custom.css">
+
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.11/jquery-ui.min.js"></script>
+
+
+<script type="text/javascript">
+$(function(){
+  $('#linkButton').button();
+});
+
+function requestNewDashboard() {
+  $.ajax({
+    url: '/newDashboard/',
+    type: 'POST',
+    success: function(newId) { document.location.href = "/dashboards/" + newId; }
+  });
+}
+
+</script>
+
+<style type="text/css">
+
+.centered{
+    margin: 0 auto;
+    width: 284px;
+}
+
+.loginButton{
+-moz-box-shadow: 0 0 8px rgba(0, 0, 0, 0.15), 0 1px 0 rgba(255,255,255,0.8) inset; 
+-webkit-box-shadow: 0 0 8px rgba(0, 0, 0, 0.15), 0 1px 0 rgba(255,255,255,0.8) inset;
+}
+
+</style>
+
+
+</head>
+<body>
+    <div style="top: 25%; width: 100%; position: absolute; margin: 0 auto">
+      <img src="/dashboards/images/ascotLogoBig.png" class="centered" style="display: block"> 
+      <div class="centered" style="width: 260px;"> 
+        <a id="linkButton" href="#" onClick="requestNewDashboard()" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only loginButton" style="display: block;" role="button"><span class="ui-button-text">Create Dashboard</span> </a>
+      </div>
+    </div>
+</body>
+</html>

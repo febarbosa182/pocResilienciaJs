@@ -1,0 +1,7 @@
+{
+    "preset": "airbnb",
+    "excludeFiles": ["node_modules/**","build/**","dist/**"],
+    "fileExtensions": [".js", ".jsx"],
+    "esnext": true,
+    "verbose": true
+}

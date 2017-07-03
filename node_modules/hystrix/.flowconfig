@@ -1,0 +1,11 @@
+[ignore]
+.*/build
+.*/config
+.*node_modules/webpack.*
+.*node_modules/karma.*
+.*node_modules/node-sass.*
+.*/gulpfile.js
+.src/__tests__/*
+
+[include]
+src/*

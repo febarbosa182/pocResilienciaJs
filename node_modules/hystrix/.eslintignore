@@ -1,0 +1,3 @@
+src/assets/vendor/*
+node_modules/*
+config/*
