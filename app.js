@@ -17,9 +17,6 @@ const CLSContext = require('zipkin-context-cls'),
 //constant to instrument the zipkin server           
 const zipKinMidleware = require('zipkin-instrumentation-express').expressMiddleware;
 
-//instrument the client
-const {restInterceptor} = require('zipkin-instrumentation-cujojs-rest');
-
 var makeRequest = function(options) {
     var req = _.assign(
         options
@@ -88,14 +85,6 @@ module.exports = function(port) {
         })
     );
 
-    const zipkinRest = rest.wrap(
-        restInterceptor, 
-        {
-            tracer, 
-            serviceName: 'app' + port
-        }
-    );
-
     // Allow cross-origin, traced requests. See http://enable-cors.org/server_expressjs.html
     app.use((req, res, next) => {
         res.header('Access-Control-Allow-Origin', '*');
@@ -114,13 +103,11 @@ module.exports = function(port) {
             var n = getRandomInt(1, command.service.calls);
             for (var i = 0; i < n; i++) {
                 var url = "http://localhost:" + command.service.port + "/random-sleep/" + command.service.sleep;
-                promises.push(command.execute(
-                    zipkinRest(url)
-                /*{
-                    method: "GET",
-                    url: url
-                }*/
-                ));
+                promises.push(command.execute({
+                        method: "GET",
+                        url: url
+                    })
+                );
             }
         });
 
