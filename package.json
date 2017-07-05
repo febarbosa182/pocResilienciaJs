@@ -9,6 +9,7 @@
   "author": "Felipe Barbosa",
   "license": "ISC",
   "dependencies": {
+    "browserify": "^14.4.0",
     "dashboard": "0.0.1",
     "express": "^4.15.3",
     "gulp": "^3.9.0",
@@ -28,9 +29,15 @@
     "q": "^1.5.0",
     "request": "^2.81.0",
     "request-promise-json": "^1.0.4",
+    "rest": "^2.0.0",
     "rewire": "^2.3.4",
     "rxjs": "^5.4.1",
     "sinon": "^2.1.0",
-    "yargs": "^8.0.1"
+    "yargs": "^8.0.1",
+    "zipkin": "^0.7.2",
+    "zipkin-context-cls": "^0.6.1",
+    "zipkin-instrumentation-cujojs-rest": "^0.7.2",
+    "zipkin-instrumentation-express": "^0.7.2",
+    "zipkin-transport-http": "^0.7.2"
   }
 }
