@@ -125,7 +125,7 @@ if (cluster.isMaster) {
         userWorkers = [],
         dashboardWorkers = null;
     
-    console.log("The web UI will be on http://localhost:%d/", opts.STATS_WEBUI_PORT);
+    //console.log("The web UI will be on http://localhost:%d/", opts.STATS_WEBUI_PORT);
     console.log("You have 5 seconds to abort...");
     function countdown(n) {
         if (n >= 1) {
