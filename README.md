@@ -1,7 +1,11 @@
 # pocResilienciaJs
 Projeto implementando hystrix, zipkin e consul em node.js
 
-Para subir todos os serviços, aplicações e dashboard executar na raiz do projeto no terminal: node index.js
+Para subir todos os serviços, aplicações e dashboard executar na raiz do projeto no terminal: 
+
+npm install
+
+node index.js
 
 Serviços (portas): 3001,3002,3003
 Aplicações (portas): 3004, 3005
