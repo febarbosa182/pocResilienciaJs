@@ -72,37 +72,37 @@ var services = [{
     port: opts.SERVICE_PORT_1,
     timeout: 700,
     resetTime: 1000,
-    concurrency: 6,
+    concurrency: 1,
     errorThreshold: 10,
     errorNamesThresholds: {
         ServiceUnavailableError: 0
     },
 
     // app will make N calls to this service per user request
-    calls: 3,
+    calls: 1,
     // app will tell service to random sleep until N ms
     sleep: 300
 }, {
     port: opts.SERVICE_PORT_2,
     timeout: 1000,
     resetTime: 600,
-    concurrency: 6,
+    concurrency: 1,
     errorThreshold: 10,
     errorNamesThresholds: {
         ServiceUnavailableError: 0
     },
-    calls: 6,
-    sleep: 1200
+    calls: 1,
+    sleep: 600
 }, {
     port: opts.SERVICE_PORT_3,
     timeout: 1300,
     resetTime: 600,
-    concurrency: 4,
+    concurrency: 1,
     errorThreshold: 10,
     errorNamesThresholds: {
         ServiceUnavailableError: 0
     },
-    calls: 2,
+    calls: 1,
     sleep: 100
 }];
 

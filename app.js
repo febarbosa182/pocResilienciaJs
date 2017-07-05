@@ -5,7 +5,20 @@ var express = require('express'),
     http = require('request-promise-json'),
     _ = require("lodash"),
     hystrixStream = require('./node_modules/hystrixjs/lib/http/HystrixSSEStream'),
-    CommandsFactory = require("./node_modules/hystrixjs/lib/command/CommandFactory");
+    CommandsFactory = require("./node_modules/hystrixjs/lib/command/CommandFactory"),
+    rest = require('rest');
+
+const CLSContext = require('zipkin-context-cls'),
+      {Tracer} = require('zipkin'),
+      {recorder} = require('./recorder'),
+      ctxImpl = new CLSContext('zipkin'),
+      tracer = new Tracer({ctxImpl, recorder});
+
+//constant to instrument the zipkin server           
+const zipKinMidleware = require('zipkin-instrumentation-express').expressMiddleware;
+
+//instrument the client
+const {restInterceptor} = require('zipkin-instrumentation-cujojs-rest');
 
 var makeRequest = function(options) {
     var req = _.assign(
@@ -67,6 +80,32 @@ module.exports = function(port) {
         });
     };
 
+    //instrument the server
+    app.use(
+        zipKinMidleware({
+            tracer,
+            serviceName: 'app' + port
+        })
+    );
+
+    const zipkinRest = rest.wrap(
+        restInterceptor, 
+        {
+            tracer, 
+            serviceName: 'app' + port
+        }
+    );
+
+    // Allow cross-origin, traced requests. See http://enable-cors.org/server_expressjs.html
+    app.use((req, res, next) => {
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Headers', [
+            'Origin', 'Accept', 'X-Requested-With', 'X-B3-TraceId',
+            'X-B3-ParentSpanId', 'X-B3-SpanId', 'X-B3-Sampled'
+        ].join(', '));
+        next();
+    });
+
     app.get('/api/hystrix.stream', hystrixStreamResponse);
 
     app.get("/", function(req, res) {
@@ -75,10 +114,13 @@ module.exports = function(port) {
             var n = getRandomInt(1, command.service.calls);
             for (var i = 0; i < n; i++) {
                 var url = "http://localhost:" + command.service.port + "/random-sleep/" + command.service.sleep;
-                promises.push(command.execute({
+                promises.push(command.execute(
+                    zipkinRest(url)
+                /*{
                     method: "GET",
                     url: url
-                }));
+                }*/
+                ));
             }
         });
 

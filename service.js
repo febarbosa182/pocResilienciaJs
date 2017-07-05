@@ -1,13 +1,20 @@
 var express = require('express'),
     getRandomInt = require('./random_int');
 
+const CLSContext = require('zipkin-context-cls'),
+      {Tracer} = require('zipkin'),
+      {recorder} = require('./recorder'),
+      ctxImpl = new CLSContext('zipkin'),
+      tracer = new Tracer({ctxImpl,recorder}),
+      zipkinMiddleware = require('zipkin-instrumentation-express').expressMiddleware;
+
 module.exports = function(port) {
     var app = express(),
         reqs = 0,
-        sickPercentage = 20,
+        sickPercentage = 5,
         maxSetSickTimeout = 5,
         sick = false,
-        maintenancePercentage = 5,
+        maintenancePercentage = 1,
         maxSetMaintenanceTimeout = 15,
         maintenance = false;
     
@@ -25,6 +32,14 @@ module.exports = function(port) {
 
     setSick();
     setMaintenance();
+
+    //instrument the server
+    app.use(
+        zipkinMiddleware({
+            tracer,
+            serviceName: 'service' + port
+        })
+    );
 
     app.get("/random-sleep/:ms", function(req, res) {
         reqs++;
