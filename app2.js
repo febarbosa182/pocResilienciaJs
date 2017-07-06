@@ -2,6 +2,8 @@ var express = require('express'),
     Promise = require('q'),
     request = require('request'),
     getRandomInt = require('./random_int'),
+    http = require('request-promise-json'),
+    _ = require("lodash"),
     hystrixStream = require('./node_modules/hystrixjs/lib/http/HystrixSSEStream'),
     CommandsFactory = require("./node_modules/hystrixjs/lib/command/CommandFactory"),
     rest = require('rest');
@@ -17,6 +19,14 @@ var zipKinMidleware = require('zipkin-instrumentation-express').expressMiddlewar
 
 // instrument the client
 const {restInterceptor} = require('zipkin-instrumentation-cujojs-rest');
+
+var makeRequest = function(options) {
+    var req = _.assign(
+        options
+    );
+
+    return http.request(req);
+};
 
 function hystrixStreamResponse(request, response) {
     response.append('Content-Type', 'text/event-stream;charset=UTF-8');
@@ -52,16 +62,6 @@ module.exports = function(port) {
         return null;
     };
 
-    const zipkinRest = rest.wrap(restInterceptor, {tracer, serviceName: 'app' + port});
-
-    var makeRequest = function(options) {
-        return zipkinRest(options.url);
-    };
-
-    var makeRequest2 = function() {
-        return zipkinRest("https://www.google.com");
-    };
-
     this.configure = function(config) {
 
         config.services.forEach(function(service) {
@@ -88,6 +88,8 @@ module.exports = function(port) {
         })
     );
 
+    var zipkinRest = rest.wrap(restInterceptor, {tracer, serviceName: 'app' + port});
+
     // Allow cross-origin, traced requests. See http://enable-cors.org/server_expressjs.html
     app.use((req, res, next) => {
         res.header('Access-Control-Allow-Origin', '*');
@@ -113,7 +115,8 @@ module.exports = function(port) {
                     }
                 ));
             }
-        }); 
+        });
+
 
         Promise.all(promises).then(function(results) {
            results.forEach(function(result) {

@@ -34,7 +34,7 @@ module.exports = function(ports) {
         opts = options;
         process.title = 'node (user worker)';
         for (var i = 0; i < opts.users; i++) {
-            setTimeout(doRequest, 500);
+            setTimeout(doRequest, 1000);
         }
     };
 

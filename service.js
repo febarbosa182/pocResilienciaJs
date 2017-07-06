@@ -14,7 +14,7 @@ module.exports = function(port) {
         sickPercentage = 5,
         maxSetSickTimeout = 5,
         sick = false,
-        maintenancePercentage = 1,
+        maintenancePercentage = 20,
         maxSetMaintenanceTimeout = 15,
         maintenance = false;
     
