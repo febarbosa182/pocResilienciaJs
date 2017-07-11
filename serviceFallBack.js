@@ -11,11 +11,11 @@ const CLSContext = require('zipkin-context-cls'),
 module.exports = function(port) {
     var app = express(),
         reqs = 0,
-        sickPercentage = 5,
-        maxSetSickTimeout = 5,
+        sickPercentage = 0.01,
+        maxSetSickTimeout = 0.01,
         sick = false,
-        maintenancePercentage = 50,
-        maxSetMaintenanceTimeout = 50,
+        maintenancePercentage = 0.01,
+        maxSetMaintenanceTimeout = 0.01,
         maintenance = false;
     
     function setSick() {
@@ -44,7 +44,6 @@ module.exports = function(port) {
     app.get("/random-sleep/:ms", function(req, res) {
         reqs++;
         
-        //simula um serviço em manutenção
         if (maintenance) {
             res.status(503).send("Temporaly Unavailable");
             return;
@@ -52,7 +51,6 @@ module.exports = function(port) {
 
         var ms;
 
-        //simula um servidor com alta no tempo de retorno
         if (sick) {
             ms = getRandomInt(0, 10 * parseInt(req.params.ms));
         } else {

@@ -39,7 +39,9 @@ module.exports = function(port) {
     var app = express(),
         cbs = [],
         commands = [],
-        reqs = 0;
+        reqs = 0,
+        commandsFall = null;
+        
     var isErrorHandler = function(error) {
         if (error) {
             return error;
@@ -58,8 +60,12 @@ module.exports = function(port) {
         return zipkinRest(options.url);
     };
 
-    var makeRequest2 = function() {
-        return zipkinRest("https://www.google.com");
+    var fallBackService = function() {
+        //service de fallback
+        commandsFall.execute({
+            method: "GET" ,
+            url : "http://localhost:3006/random-sleep/1"
+        });
     };
 
     this.configure = function(config) {
@@ -74,10 +80,27 @@ module.exports = function(port) {
                 .statisticalWindowLength(10000)
                 .statisticalWindowNumberOfBuckets(10)
                 .errorHandler(isErrorHandler)
+                .fallbackTo(fallBackService)
                 .build();
             serviceCommand.service = service;
             commands.push(serviceCommand);
         });
+    };
+
+    this.fallBackConfigure = function(fallBackConfig) {
+        var serviceCommand = CommandsFactory.getOrCreate("Service on port :" + fallBackConfig.port + ":" + port)
+                .circuitBreakerErrorThresholdPercentage(fallBackConfig.errorThreshold)
+                .timeout(fallBackConfig.timeout)
+                .run(makeRequest)
+                .circuitBreakerRequestVolumeThreshold(fallBackConfig.concurrency)
+                .circuitBreakerSleepWindowInMilliseconds(fallBackConfig.timeout)
+                .statisticalWindowLength(10000)
+                .statisticalWindowNumberOfBuckets(10)
+                .errorHandler(isErrorHandler)
+                .build();
+        serviceCommand.service = fallBackConfig;
+        serviceCommand.service.port = fallBackConfig.port;
+        commandsFall = serviceCommand;
     };
 
     //instrument the server

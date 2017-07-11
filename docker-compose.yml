@@ -1,0 +1,34 @@
+version: '2.0'
+
+services:
+  storage:
+    image: openzipkin/zipkin-mysql
+    container_name: mysql
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    environment:
+      - STORAGE_TYPE=mysql
+      # Point the zipkin at the storage backend
+      - MYSQL_HOST=mysql
+      # Uncomment to disable scribe
+      # - SCRIBE_ENABLED=false
+      # Uncomment to enable self-tracing
+      # - SELF_TRACING_ENABLED=true
+      # Uncomment to enable debug logging
+      # - JAVA_OPTS=-Dlogging.level.zipkin=DEBUG
+    ports:
+      - 9411:9411/tcp
+    depends_on:
+      - storage
+  app:
+    build: .
+    container_name: pocresilienciajs
+    ports:
+      - 8000:8000/tcp 
+      - 3004:3004/tcp 
+      - 3005:3005/tcp
+    depends_on:
+      - zipkin
+    links: 
+      - zipkin:zipkin
