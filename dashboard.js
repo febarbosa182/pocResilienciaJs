@@ -3,16 +3,13 @@ const app = express();
 const dashboard = require('hystrix-dashboard');
  
 
-module.exports = function() {
-
-var port = 8000;
+module.exports = function(port) {
 
 app.use(dashboard({
     idleTimeout: 4000,  // will emit "ping if no data comes within 4 seconds, 
     interval: 2000,      // interval to collect metrics 
     proxy: true         // enable proxy for stream 
 }));
-    //http://localhost:8000/hystrix 
     this.start = function() {
         process.title = 'node (dashboard:' + port + ')';
         app.listen(port, function() {

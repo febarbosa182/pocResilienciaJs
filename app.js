@@ -1,9 +1,6 @@
 var express = require('express'),
     Promise = require('q'),
-    request = require('request'),
     getRandomInt = require('./random_int'),
-    http = require('request-promise-json'),
-    _ = require("lodash"),
     hystrixStream = require('./node_modules/hystrixjs/lib/http/HystrixSSEStream'),
     CommandsFactory = require("./node_modules/hystrixjs/lib/command/CommandFactory"),
     rest = require('rest');
@@ -14,16 +11,11 @@ const CLSContext = require('zipkin-context-cls'),
       ctxImpl = new CLSContext('zipkin'),
       tracer = new Tracer({ctxImpl, recorder});
 
-//constant to instrument the zipkin server           
-const zipKinMidleware = require('zipkin-instrumentation-express').expressMiddleware;
+//var to instrument the zipkin server           
+var zipKinMidleware = require('zipkin-instrumentation-express').expressMiddleware;
 
-var makeRequest = function(options) {
-    var req = _.assign(
-        options
-    );
-
-    return http.request(req);
-};
+// instrument the client
+const {restInterceptor} = require('zipkin-instrumentation-cujojs-rest');
 
 function hystrixStreamResponse(request, response) {
     response.append('Content-Type', 'text/event-stream;charset=UTF-8');
@@ -46,7 +38,9 @@ module.exports = function(port) {
     var app = express(),
         cbs = [],
         commands = [],
-        reqs = 0;
+        reqs = 0,
+        commandsFall = null;
+        
     var isErrorHandler = function(error) {
         if (error) {
             return error;
@@ -57,6 +51,20 @@ module.exports = function(port) {
             return unavailableError;
         }
         return null;
+    };
+
+    const zipkinRest = rest.wrap(restInterceptor, {tracer, serviceName: 'app' + port});
+
+    var makeRequest = function(options) {
+        return zipkinRest(options.url);
+    };
+
+    var fallBackService = function() {
+        //service de fallback
+        commandsFall.execute({
+            method: "GET" ,
+            url : "http://localhost:3006/random-sleep/1"
+        });
     };
 
     this.configure = function(config) {
@@ -71,10 +79,27 @@ module.exports = function(port) {
                 .statisticalWindowLength(10000)
                 .statisticalWindowNumberOfBuckets(10)
                 .errorHandler(isErrorHandler)
+                .fallbackTo(fallBackService)
                 .build();
             serviceCommand.service = service;
             commands.push(serviceCommand);
         });
+    };
+
+    this.fallBackConfigure = function(fallBackConfig) {
+        var serviceCommand = CommandsFactory.getOrCreate("Service on port :" + fallBackConfig.port + ":" + port)
+                .circuitBreakerErrorThresholdPercentage(fallBackConfig.errorThreshold)
+                .timeout(fallBackConfig.timeout)
+                .run(makeRequest)
+                .circuitBreakerRequestVolumeThreshold(fallBackConfig.concurrency)
+                .circuitBreakerSleepWindowInMilliseconds(fallBackConfig.timeout)
+                .statisticalWindowLength(10000)
+                .statisticalWindowNumberOfBuckets(10)
+                .errorHandler(isErrorHandler)
+                .build();
+        serviceCommand.service = fallBackConfig;
+        serviceCommand.service.port = fallBackConfig.port;
+        commandsFall = serviceCommand;
     };
 
     //instrument the server
@@ -103,13 +128,14 @@ module.exports = function(port) {
             var n = getRandomInt(1, command.service.calls);
             for (var i = 0; i < n; i++) {
                 var url = "http://localhost:" + command.service.port + "/random-sleep/" + command.service.sleep;
-                promises.push(command.execute({
-                        method: "GET",
-                        url: url
-                    })
-                );
+                promises.push(command.execute(
+                    {
+                        method: "GET" ,
+                        url : url
+                    }
+                ));
             }
-        });
+        }); 
 
         Promise.all(promises).then(function(results) {
            results.forEach(function(result) {
