@@ -1,6 +1,5 @@
 var express = require('express'),
     Promise = require('q'),
-    request = require('request'),
     getRandomInt = require('./random_int'),
     hystrixStream = require('./node_modules/hystrixjs/lib/http/HystrixSSEStream'),
     CommandsFactory = require("./node_modules/hystrixjs/lib/command/CommandFactory"),

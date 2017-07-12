@@ -1,6 +1,4 @@
 var cluster = require('cluster'),
-    minimist = require('minimist'),
-    Stats = require('./stats'),
     Service = require('./service'),
     ServiceFallBack = require('./serviceFallBack'),
     EndUser = require('./end_user'),
@@ -19,8 +17,6 @@ var opts = {
     APP_PORT_1: 3004,
     APP_PORT_2: 3005,
     DASHBOARD_PORT: 8000,
-    STATS_S2S_PORT: 3013,
-    STATS_WEBUI_PORT: 3000,
     GLOBALAGENT_MAXSOCKETS: 1000
 };
 
@@ -78,25 +74,17 @@ var serviceFallBack = {
 
 var apps = [opts.APP_PORT_1, opts.APP_PORT_2];
 
-var statsServer = {
-    webPort: opts.STATS_WEBUI_PORT,
-    ioPort: opts.STATS_S2S_PORT
-};
-
 var dashboardServer = {
     port: opts.DASHBOARD_PORT
 };
 
-
 if (cluster.isMaster) {
-    var statsWorker = null,
-        serviceWorkers = [],
+    var serviceWorkers = [],
         serviceFallBackWorker = null,
         appWorkers = [],
         userWorkers = [],
         dashboardWorkers = null;
     
-    //console.log("The web UI will be on http://localhost:%d/", opts.STATS_WEBUI_PORT);
     console.log("You have 5 seconds to abort...");
     function countdown(n) {
         if (n >= 1) {
@@ -113,8 +101,6 @@ if (cluster.isMaster) {
 
     function start() {
 
-    statsWorker = cluster.fork({statsServer: statsServer});
-
     services.forEach(function(service) {
         serviceWorkers.push(cluster.fork({service: service.port}));
     });
@@ -127,8 +113,6 @@ if (cluster.isMaster) {
         userWorkers.push(cluster.fork());
     }
 
-    statsWorker.send('start');
-
     serviceWorkers.forEach(function(worker) {
         worker.send('start');
     });
@@ -136,7 +120,7 @@ if (cluster.isMaster) {
     appWorkers.forEach(function(worker) {
         worker.send({
             msg: 'start',
-            config: {services: services, statsPort: statsServer.ioPort},
+            config: {services: services},
             fallBackConfigure: serviceFallBack
         });
     });
