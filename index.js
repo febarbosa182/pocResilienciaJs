@@ -137,14 +137,7 @@ if (cluster.isMaster) {
 
     }
 } else {
-    if (process.env.statsServer) {
-        var server = new Stats(process.env.statsServer);
-        process.on('message', function(msg) {
-            if (msg == 'start') {
-                //server.start();
-            }
-        });
-    } else if (process.env.service) {
+    if (process.env.service) {
         var service = new Service(parseInt(process.env.service));
         process.on('message', function(msg) {
             if (msg == 'start') {

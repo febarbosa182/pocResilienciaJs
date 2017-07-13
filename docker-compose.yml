@@ -2,21 +2,18 @@ version: '2.0'
 
 services:
   storage:
-    image: openzipkin/zipkin-mysql
-    container_name: mysql
+    image: carlozleite/es-swarm
+    container_name: elasticsearch
+    environment: 
+      - env SERVICE_NAME=elasticsearch 
+      - env ES_JAVA_OPTS='-Xms512m -Xmx512m' 
   zipkin:
     image: openzipkin/zipkin
     container_name: zipkin
     environment:
-      - STORAGE_TYPE=mysql
+      - STORAGE_TYPE=elasticsearch
       # Point the zipkin at the storage backend
-      - MYSQL_HOST=mysql
-      # Uncomment to disable scribe
-      # - SCRIBE_ENABLED=false
-      # Uncomment to enable self-tracing
-      # - SELF_TRACING_ENABLED=true
-      # Uncomment to enable debug logging
-      # - JAVA_OPTS=-Dlogging.level.zipkin=DEBUG
+      - ES_HOSTS=http://elasticsearch:9200
     ports:
       - 9411:9411/tcp
     depends_on:
