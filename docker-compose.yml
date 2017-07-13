@@ -2,8 +2,10 @@ version: '2.0'
 
 services:
   storage:
-    image: carlozleite/es-swarm
+    image: openzipkin/zipkin-elasticsearch
     container_name: elasticsearch
+    #image: carlozleite/es-swarm
+    #container_name: elasticsearch
     environment: 
       - env SERVICE_NAME=elasticsearch 
       - env ES_JAVA_OPTS='-Xms512m -Xmx512m' 
