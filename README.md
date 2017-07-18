@@ -20,7 +20,7 @@ A biblioteca hystrixjs proporciona a implementação do seguinte fluxo.
 
 Para a implementação do circuit braker:
 
----javascript
+```javascript
 var CommandsFactory = require('hystrixjs').commandFactory;
 var serviceCommand = CommandsFactory.getOrCreate("Service on port :" + service.port + ":" + port)
     .circuitBreakerErrorThresholdPercentage(service.errorThreshold)
@@ -33,7 +33,7 @@ var serviceCommand = CommandsFactory.getOrCreate("Service on port :" + service.p
     .errorHandler(isErrorHandler)
     .fallbackTo(fallBackFunction)
     .build();
----
+```
 
 <b>Hystrix Dashboard</b>
 
