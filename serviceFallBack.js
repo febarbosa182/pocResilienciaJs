@@ -1,5 +1,9 @@
 var express = require('express'),
-    getRandomInt = require('./random_int');
+    getRandomInt = require('./random_int'),
+    consulId = require('uuid').v4(),
+    consul = require('consul')({
+        host:'consul'
+    });
 
 const CLSContext = require('zipkin-context-cls'),
       {Tracer} = require('zipkin'),
@@ -17,6 +21,31 @@ module.exports = function(port) {
         maintenancePercentage = 0.01,
         maxSetMaintenanceTimeout = 0.01,
         maintenance = false;
+    
+    consulId = 'service' + String(port) + consulId;
+
+    var details = {
+        name: 'service' + String(port),
+        address: 'localhost',
+        port: Number(port),
+        id: consulId,
+        check: {
+            ttl: '10s',
+            deregister_critical_service_after: '1m'
+        }
+    };
+    
+    consul.agent.service.register(details, err => {
+        if (err) throw new Error(err);
+        console.log('registered with Consul');
+
+        setInterval(() => {
+        consul.agent.check.pass({id:`service:${consulId}`}, err => {
+            if (err) throw new Error(err);
+            console.log('Service ' + port + 'told Consul that we are healthy');
+        });
+        }, 5 * 1000);
+    });
     
     function setSick() {
         sick = getRandomInt(0, 100) <= sickPercentage;
@@ -59,6 +88,12 @@ module.exports = function(port) {
         setTimeout(function() {
             res.send("OK: slept " + ms + " ms");
         }, ms);
+    });
+
+    app.get('/deregister', function(){
+        consul.agent.service.deregister(details, (err) => {
+            console.log('de-registered app.', err);
+        });
     });
     
     this.start = function() {

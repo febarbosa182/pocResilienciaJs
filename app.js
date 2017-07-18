@@ -3,7 +3,11 @@ var express = require('express'),
     getRandomInt = require('./random_int'),
     hystrixStream = require('./node_modules/hystrixjs/lib/http/HystrixSSEStream'),
     CommandsFactory = require("./node_modules/hystrixjs/lib/command/CommandFactory"),
-    rest = require('rest');
+    rest = require('rest'),
+    consulId = require('uuid').v4(),
+    consul = require('consul')({
+        host:'consul'
+    });
 
 const CLSContext = require('zipkin-context-cls'),
       {Tracer} = require('zipkin'),
@@ -40,6 +44,32 @@ module.exports = function(port) {
         commands = [],
         reqs = 0,
         commandsFall = null;
+
+    consulId = 'app' + port + consulId;
+
+    let details = {
+        name: 'apps'+ port,
+        address: 'localhost',
+        port: port,
+        id: consulId,
+        check: {
+            ttl: '10s',
+            deregister_critical_service_after: '1m'
+        }
+    };
+
+    consul.agent.service.register(details, err => {
+        if (err) throw new Error(err);
+        console.log('registered with Consul');
+
+        setInterval(() => {
+        consul.agent.check.pass({id:`service:${consulId}`}, err => {
+            if (err) throw new Error(err);
+            console.log('App ' + port + 'told Consul that we are healthy');
+        });
+        }, 5 * 1000);
+    });
+
         
     var isErrorHandler = function(error) {
         if (error) {
@@ -122,6 +152,12 @@ module.exports = function(port) {
 
     app.get('/api/hystrix.stream', hystrixStreamResponse);
 
+    app.get('/deregister', function(){
+        consul.agent.service.deregister(details, (err) => {
+            console.log('de-registered app.', err);
+        });
+    });
+
     app.get("/", function(req, res) {
         var promises = [];
         commands.forEach(function(command) {
@@ -158,7 +194,7 @@ module.exports = function(port) {
                 var elapsed = (Date.now() - start) / 1000;
                 var rps = elapsed ? reqs / elapsed : 0;
                 console.log("App req/s: " + rps);
-            }, 1000);
+            }, 3000);
         });
     };
 

@@ -20,6 +20,18 @@ let details = {
         deregister_critical_service_after: '1m'
     }
 };
+/*
+let details = {
+    name: 'service'+ port,
+    address: 'localhost',
+    port: port,
+    id: consulId,
+    check: {
+        ttl: '10s',
+        deregister_critical_service_after: '1m'
+    }
+};
+*/
 consul.agent.service.register(details, err => {
     if (err) throw new Error(err);
     console.log('registered with Consul');
@@ -31,4 +43,10 @@ consul.agent.service.register(details, err => {
       });
     }, 5 * 1000);
 });
+
+// let details = {id: CONSUL_ID};
+// consul.agent.service.deregister(details, (err) => {
+//     console.log('de-registered.', err);
+//     process.exit();
+// });
 

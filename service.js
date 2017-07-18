@@ -1,5 +1,9 @@
 var express = require('express'),
-    getRandomInt = require('./random_int');
+    getRandomInt = require('./random_int'),
+    consulId = require('uuid').v4(),
+    consul = require('consul')({
+        host:'consul'
+    });
 
 const CLSContext = require('zipkin-context-cls'),
       {Tracer} = require('zipkin'),
@@ -7,6 +11,7 @@ const CLSContext = require('zipkin-context-cls'),
       ctxImpl = new CLSContext('zipkin'),
       tracer = new Tracer({ctxImpl,recorder}),
       zipkinMiddleware = require('zipkin-instrumentation-express').expressMiddleware;
+
 
 module.exports = function(port) {
     var app = express(),
@@ -18,6 +23,31 @@ module.exports = function(port) {
         maxSetMaintenanceTimeout = 50,
         maintenance = false;
     
+    consulId = 'service' + port + consulId;
+
+    let details = {
+        name: 'service'+ port,
+        address: 'localhost',
+        port: port,
+        id: consulId,
+        check: {
+            ttl: '10s',
+            deregister_critical_service_after: '1m'
+        }
+    };
+
+    consul.agent.service.register(details, err => {
+        if (err) throw new Error(err);
+        console.log('registered with Consul');
+
+        setInterval(() => {
+        consul.agent.check.pass({id:`service:${consulId}`}, err => {
+            if (err) throw new Error(err);
+            console.log('Service ' + port + 'told Consul that we are healthy');
+        });
+        }, 5 * 1000);
+    });
+
     function setSick() {
         sick = getRandomInt(0, 100) <= sickPercentage;
         //console.log("SERVICE: ", port, "sick", sick);
@@ -62,7 +92,13 @@ module.exports = function(port) {
             res.send("OK: slept " + ms + " ms");
         }, ms);
     });
-    
+
+    app.get('/deregister', function(){
+        consul.agent.service.deregister(details, (err) => {
+            console.log('de-registered app.', err);
+        });
+    });
+
     this.start = function() {
         process.title = 'node (service:' + port + ')';
         app.listen(port, function() {

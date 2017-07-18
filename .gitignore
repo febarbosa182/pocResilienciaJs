@@ -1,6 +1,5 @@
-# Directório de dependências
+# Dependency directories
 node_modules
 
-# Log de execuções npm
+# Npm logs
 npm-debug.log.*
-
