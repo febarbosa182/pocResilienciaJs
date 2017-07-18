@@ -62,12 +62,12 @@ module.exports = function(port) {
         if (err) throw new Error(err);
         console.log('registered with Consul');
 
-        setInterval(() => {
-        consul.agent.check.pass({id:`service:${consulId}`}, err => {
-            if (err) throw new Error(err);
-            console.log('App ' + port + 'told Consul that we are healthy');
-        });
-        }, 5 * 1000);
+        // setInterval(() => {
+        // consul.agent.check.pass({id:`service:${consulId}`}, err => {
+        //     if (err) throw new Error(err);
+        //     console.log('App ' + port + 'told Consul that we are healthy');
+        // });
+        // }, 5 * 1000);
     });
 
         
