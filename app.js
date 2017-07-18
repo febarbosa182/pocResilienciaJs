@@ -152,6 +152,12 @@ module.exports = function(port) {
 
     app.get('/api/hystrix.stream', hystrixStreamResponse);
 
+    app.get('/deregister', function(){
+        consul.agent.service.deregister(details, (err) => {
+            console.log('de-registered app.', err);
+        });
+    });
+
     app.get("/", function(req, res) {
         var promises = [];
         commands.forEach(function(command) {
@@ -178,12 +184,6 @@ module.exports = function(port) {
             res.send("Error: " + error);
         });
     });
-
-    this.unregister = function(){
-        consul.agent.service.deregister(details, (err) => {
-            console.log('de-registered app.', err);
-        });
-    }
 
     this.start = function() {
         process.title = 'node (app:' + port + ')';
