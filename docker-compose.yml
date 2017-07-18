@@ -2,24 +2,38 @@ version: '2.0'
 
 services:
   storage:
-    image: openzipkin/zipkin-elasticsearch
-    container_name: elasticsearch
-    #image: carlozleite/es-swarm
-    #container_name: elasticsearch
-    environment: 
-      - env SERVICE_NAME=elasticsearch 
-      - env ES_JAVA_OPTS='-Xms512m -Xmx512m' 
+    # image: openzipkin/zipkin-elasticsearch
+    # container_name: elasticsearch
+    # image: carlozleite/es-swarm
+    # container_name: elasticsearch
+    # environment: 
+    #   - SERVICE_NAME=elasticsearch 
+    #   - ES_JAVA_OPTS='-Xms512m -Xmx512m' 
+    # ports: 
+    #   - 9200:9201/tcp
+    image: openzipkin/zipkin-mysql
+    container_name: mysql
   zipkin:
     image: openzipkin/zipkin
     container_name: zipkin
     environment:
-      - STORAGE_TYPE=elasticsearch
+      - STORAGE_TYPE=mysql
       # Point the zipkin at the storage backend
-      - ES_HOSTS=http://elasticsearch:9200
+      - MYSQL_HOST=mysql
+      # - STORAGE_TYPE=elasticsearch
+      # # Point the zipkin at the storage backend
+      # - ES_HOSTS=http://elasticsearch:9201
     ports:
       - 9411:9411/tcp
     depends_on:
       - storage
+    # links:
+    #   - storage:elasticsearch
+  consul:
+    image: consul
+    container_name: consul
+    ports:
+      - 8500:8500/tcp
   app:
     build: .
     container_name: pocresilienciajs
@@ -29,5 +43,7 @@ services:
       - 3005:3005/tcp
     depends_on:
       - zipkin
+      - consul
     links: 
       - zipkin:zipkin
+      - consul:consul
