@@ -64,12 +64,12 @@ module.exports = function(port) {
     setMaintenance();
 
     //instrument the server
-    app.use(
-        zipkinMiddleware({
-            tracer,
-            serviceName: 'service' + port
-        })
-    );
+    // app.use(
+    //     zipkinMiddleware({
+    //         tracer,
+    //         serviceName: 'service' + port
+    //     })
+    // );
 
     app.get("/random-sleep/:ms", function(req, res) {
         reqs++;

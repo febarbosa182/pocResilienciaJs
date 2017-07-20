@@ -1,8 +1,8 @@
 var express = require('express'),
     Promise = require('q'),
     getRandomInt = require('./random_int'),
-    hystrixStream = require('./node_modules/hystrixjs/lib/http/HystrixSSEStream'),
-    CommandsFactory = require("./node_modules/hystrixjs/lib/command/CommandFactory"),
+    hystrixStream = require('hystrixjs').hystrixSSEStream,
+    CommandsFactory = CommandsFactory = require('hystrixjs').commandFactory,
     rest = require('rest'),
     consulId = require('uuid').v4(),
     consul = require('consul')({
