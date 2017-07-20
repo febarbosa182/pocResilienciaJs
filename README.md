@@ -128,18 +128,34 @@ http://localhost:3005/api/hystrix.stream
 Exemplo: 
 ![Alt text](./img/README/2F8cCD.jpg?raw=true "Hystrix")
 
+![Alt text](./img/README/DJEMtp.jpg?raw=true "HystrixStream1")
+
+![Alt text](./img/README/ZA6i1q.jpg?raw=true "HystrixStream2")
+
 https://www.npmjs.com/package/hystrix-dashboard
 
-<b>Zipkin</b>
+<h1>
+    <b>Zipkin</b>
+</h1>
 
 Zipkin é um sistema de tracing, que pode ser implementado de diferentes formas dependendo da arquitetura de seu sistema.
+
+<b>Implementação na aplicação</b>
+
+```Batchfile
+npm install --save zipkin
+npm install --save zipkin-instrumentation-cujojs-rest
+```
 
 ```javascript
 const CLSContext = require('zipkin-context-cls'),
       {Tracer} = require('zipkin'),
       {recorder} = require('./recorder'),
       ctxImpl = new CLSContext('zipkin'),
-      tracer = new Tracer({ctxImpl, recorder});
+      tracer = new Tracer({ctxImpl, recorder}),
+      rest = require('rest');
+      
+      
 
 //var to instrument the zipkin server           
 var zipKinMidleware = require('zipkin-instrumentation-express').expressMiddleware;
@@ -151,6 +167,22 @@ app.use(
         serviceName: 'app' + port
     })
 );
+
+// instrument the client
+const {restInterceptor} = require('zipkin-instrumentation-cujojs-rest');
+
+const zipkinRest = rest.wrap(
+    restInterceptor, 
+    {
+        tracer, 
+        serviceName: 'xpto'
+    }
+);
+
+//
+var makeRequest = function(url){
+    return zipkinRest(url);
+};
 ```
 
 Traces
@@ -159,9 +191,10 @@ Traces
 Dependências
 ![Alt text](./img/README/DJdkLG.jpg?raw=true "ZipkinDependences")
 
+https://www.npmjs.com/package/zipkin
 https://github.com/openzipkin/zipkin-js
 
-<b></b>
+<b>Consul</b>
 
 
 
