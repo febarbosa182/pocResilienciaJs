@@ -194,8 +194,38 @@ Dependências
 https://www.npmjs.com/package/zipkin
 https://github.com/openzipkin/zipkin-js
 
-<b>Consul</b>
+<h1>
+    <b>Consul</b>
+</h1>
 
+```Batchfile
+npm install --save consul
+```
+
+```javascript
+const consulId = require('uuid').v4(),
+      consul = require('consul')({
+          host:'consulHost', //default 127.0.0.1
+          port:'consulPort'  //default 8500
+      });
+
+let details = {
+    name: 'appName',
+    address: 'appHost',
+    port: appPort,
+    id: consulId,
+    check: {
+        ttl: '10s', //check interval
+        deregister_critical_service_after: '1m' //Time to deregister service if not health check 
+    }
+};
+```
+
+consul server UI
+![Alt text](./img/README/v0niOX.jpg?raw=true "Consul")
+
+
+https://www.npmjs.com/package/consul
 
 
 
