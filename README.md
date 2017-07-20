@@ -116,10 +116,10 @@ app.use(dashboard({
     proxy: true         // enable proxy for stream
 }));
 
-app.listen(8000); //  http://localhost:8000/hystrix
+app.listen(8000); //  http://localhost:8000/
 ```
 
-Para iniciar o monitoramento via dashboard do funcionamento das aplicações e sua reciliência adicionar o stream de log de cada aplicação ao dashboard:
+Para iniciar o monitoramento via dashboard do funcionamento das aplicações e sua reciliência, deve adicionar o stream configurado em cada aplicação ao dashboard, no caso deste POC são os seguintes:
 
 http://localhost:3004/api/hystrix.stream
 
