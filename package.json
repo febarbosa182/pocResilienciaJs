@@ -31,6 +31,7 @@
     "zipkin-context-cls": "^0.6.1",
     "zipkin-instrumentation-cujojs-rest": "^0.7.2",
     "zipkin-instrumentation-express": "^0.7.2",
-    "zipkin-transport-http": "^0.7.2"
+    "zipkin-transport-http": "^0.7.2",
+    "zipkin-transport-kafka": "^0.7.2"
   }
 }

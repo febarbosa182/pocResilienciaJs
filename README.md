@@ -145,6 +145,7 @@ Zipkin é um sistema de tracing, que pode ser implementado de diferentes formas 
 ```Batchfile
 npm install --save zipkin
 npm install --save zipkin-instrumentation-cujojs-rest
+npm install --save zipkin-instrumentation-express
 ```
 
 ```javascript
@@ -170,7 +171,6 @@ app.use(
 
 // instrument the client
 const {restInterceptor} = require('zipkin-instrumentation-cujojs-rest');
-
 const zipkinRest = rest.wrap(
     restInterceptor, 
     {
@@ -179,10 +179,58 @@ const zipkinRest = rest.wrap(
     }
 );
 
-//
+//example resp aplication call
 var makeRequest = function(url){
     return zipkinRest(url);
 };
+//or
+app.get('/xpto', (req, res) => {
+  zipkinRest('http://yourServiceHost:9000/')
+    .then(response => res.send(response.entity))
+    .catch(err => console.error('Error', err.stack));
+});
+
+```
+
+<b>Zipkin transport</b>
+
+```javascript
+const {BatchRecorder} = require('zipkin');
+```
+
+<b>HTTP</b>
+
+```Batchfile
+npm install --save zipkin-transport-http
+```
+
+```javascript
+const {HttpLogger} = require('zipkin-transport-http');
+
+// Send spans to Zipkin asynchronously over HTTP
+const zipkinBaseUrl = 'http://zipkin:port';
+const recorder = new BatchRecorder({
+  logger: new HttpLogger({
+    endpoint: `${zipkinBaseUrl}/api/v1/spans`
+  })
+});
+```
+
+<b>Kafka</b>
+
+```Batchfile
+npm install --save zipkin-transport-kafka
+```
+
+```javascript
+const {KafkaLogger} = require('zipkin-transport-kafka');
+const kafkaRecorder = new BatchRecorder({
+  logger: new KafkaLogger({
+    clientOpts: {
+      connectionString: 'http://kafka:port'
+    }
+  })
+});
 ```
 
 Traces
@@ -203,7 +251,7 @@ npm install --save consul
 ```
 
 ```javascript
-const consulId = require('uuid').v4(),
+const consulId = require('uuid').v4(), //Random ID
       consul = require('consul')({
           host:'consulHost', //default 127.0.0.1
           port:'consulPort'  //default 8500
@@ -218,7 +266,21 @@ let details = {
         ttl: '10s', //check interval
         deregister_critical_service_after: '1m' //Time to deregister service if not health check 
     }
-};
+
+//consul register
+consul.agent.service.register(details, err => {
+        if (err) throw new Error(err);
+});
+
+//consul check
+consul.agent.check.pass({id:`service:${consulId}`}, err => {
+    if (err) throw new Error(err);
+});
+
+//consul deregister
+consul.agent.service.deregister(details, (err) => {
+    if (err) throw new Error(err);
+});
 ```
 
 consul server UI

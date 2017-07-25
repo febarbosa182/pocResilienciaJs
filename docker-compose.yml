@@ -13,6 +13,15 @@ services:
     #   - 9200:9201/tcp
     image: openzipkin/zipkin-mysql
     container_name: mysql
+  # kafka:
+  #   image: spotify/kafka
+  #   container_name: kafka
+  #   environment:
+  #     - ADVERTISED_PORT=9092
+  #     - ADVERTISED_HOST=172.18.0.2
+  #   ports:
+  #     - 2181:2181
+  #     - 9092:9092
   zipkin:
     image: openzipkin/zipkin
     container_name: zipkin
@@ -20,6 +29,7 @@ services:
       - STORAGE_TYPE=mysql
       # Point the zipkin at the storage backend
       - MYSQL_HOST=mysql
+      # - KAFKA_ZOOKEEPER=kafka
       # - STORAGE_TYPE=elasticsearch
       # # Point the zipkin at the storage backend
       # - ES_HOSTS=http://elasticsearch:9201
@@ -27,8 +37,7 @@ services:
       - 9411:9411/tcp
     depends_on:
       - storage
-    # links:
-    #   - storage:elasticsearch
+      # - kafka
   consul:
     image: consul
     container_name: consul
@@ -37,6 +46,8 @@ services:
   app:
     build: .
     container_name: pocresilienciajs
+    env_file:
+      - poc.env
     ports:
       - 8000:8000/tcp 
       - 3004:3004/tcp 
@@ -44,6 +55,8 @@ services:
     depends_on:
       - zipkin
       - consul
+      # - kafka
     links: 
       - zipkin:zipkin
       - consul:consul
+      # - kafka:kafka

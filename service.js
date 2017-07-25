@@ -9,9 +9,20 @@ const CLSContext = require('zipkin-context-cls'),
       {Tracer} = require('zipkin'),
       {recorder} = require('./recorder'),
       ctxImpl = new CLSContext('zipkin'),
-      tracer = new Tracer({ctxImpl,recorder}),
+      recorderKafka = require('./recorderKafka'),
+      //tracer = new Tracer({ctxImpl,recorder}),
       zipkinMiddleware = require('zipkin-instrumentation-express').expressMiddleware;
 
+var tracer = null;
+
+if (!process.env.ZIPKIN_TRANSPORTER){
+    tracer = new Tracer({ ctxImpl , recorder });
+}else
+if (process.env.ZIPKIN_TRANSPORTER=="KAFKA"){
+    tracer = new Tracer({ ctxImpl , recorder: recorderKafka.recorderKafka });
+}else{
+    tracer = new Tracer({ ctxImpl , recorder });
+}
 
 module.exports = function(port) {
     var app = express(),
